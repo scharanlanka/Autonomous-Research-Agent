@@ -4,12 +4,13 @@ from langgraph.graph import StateGraph, END
 from ara.logger import InMemoryLogger
 from ara.memory import MemoryStore, make_id
 from ara.schemas import ToolResult, SourceItem
+from ara.azure_llm import AzureChatLLM
 
 from ara.agents.planner import run_planner
 from ara.agents.researcher import run_research
 from ara.agents.summarizer import run_summarizer
 from ara.agents.critic import run_critic
-from ara.agents.reporter import extract_revised
+from ara.agents.reporter import extract_revised, normalize_markdown_report, is_placeholder_report
 
 class GraphState(TypedDict, total=False):
     query: str
@@ -91,15 +92,48 @@ def build_graph(logger: InMemoryLogger):
             sources=state.get("sources", []),
         )
         state["draft_report"] = draft
+        llm_meta = getattr(AzureChatLLM, "last_call_meta", {}) or {}
+        if llm_meta:
+            logger.log(
+                "SummarizerAgent: llm finish_reasons="
+                f"{llm_meta.get('finish_reasons', [])}, segments={llm_meta.get('segments', 1)}, "
+                f"continued={llm_meta.get('continued', False)}"
+            )
+        logger.log(f"SummarizerAgent: draft chars={len((draft or '').strip())}")
         logger.log("SummarizerAgent: draft complete")
         state["logs"] = logger.dump()
         return state
 
     def node_critic(state: GraphState) -> GraphState:
+        draft_report = (state.get("draft_report", "") or "").strip()
+        if not draft_report:
+            logger.log("CriticAgent: skipped (empty draft)")
+            state["final_report"] = normalize_markdown_report(
+                state.get("draft_report", ""),
+                title="ARA Research Report",
+            )
+            state["logs"] = logger.dump()
+            return state
+
         logger.log("CriticAgent: reviewing + improving report")
-        crit = run_critic(state.get("draft_report", ""))
+        crit = run_critic(draft_report)
+        llm_meta = getattr(AzureChatLLM, "last_call_meta", {}) or {}
+        if llm_meta:
+            logger.log(
+                "CriticAgent: llm finish_reasons="
+                f"{llm_meta.get('finish_reasons', [])}, segments={llm_meta.get('segments', 1)}, "
+                f"continued={llm_meta.get('continued', False)}"
+            )
+        logger.log(f"CriticAgent: response chars={len((crit or '').strip())}")
         revised = extract_revised(crit)
-        state["final_report"] = revised
+        final_report = normalize_markdown_report(revised, title="ARA Research Report")
+        if is_placeholder_report(final_report):
+            logger.log("CriticAgent: revised report empty; falling back to summarizer draft")
+            final_report = normalize_markdown_report(draft_report, title="ARA Research Report")
+        if is_placeholder_report(final_report):
+            logger.log("CriticAgent: draft also empty; falling back to critic raw output")
+            final_report = normalize_markdown_report(crit, title="ARA Research Report")
+        state["final_report"] = final_report
         logger.log("CriticAgent: revision complete")
         state["logs"] = logger.dump()
         return state
