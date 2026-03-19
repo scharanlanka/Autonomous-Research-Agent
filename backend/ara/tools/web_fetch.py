@@ -1,7 +1,7 @@
 import re
 import requests
 from bs4 import BeautifulSoup
-from ara.config import FETCH_MAX_CHARS
+from backend.ara.config import FETCH_MAX_CHARS
 
 def fetch_clean_text(url: str, max_chars: int | None = None) -> str:
     max_chars = max_chars or FETCH_MAX_CHARS

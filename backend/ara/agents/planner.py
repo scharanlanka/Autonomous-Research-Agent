@@ -1,7 +1,7 @@
 import json
 import re
 
-from ara.azure_llm import AzureChatLLM
+from backend.ara.azure_llm import AzureChatLLM
 
 SYSTEM = """You are PlannerAgent for an Autonomous Research Agent.
 Create a concise step-by-step plan (5-8 steps max) to research the user's query.

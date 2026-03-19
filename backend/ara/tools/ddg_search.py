@@ -1,5 +1,5 @@
 from duckduckgo_search import DDGS
-from ara.config import DDG_MAX_RESULTS
+from backend.ara.config import DDG_MAX_RESULTS
 
 def ddg_search(query: str, max_results: int | None = None) -> list[dict]:
     max_results = max_results or DDG_MAX_RESULTS

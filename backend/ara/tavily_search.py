@@ -1,5 +1,5 @@
 from tavily import TavilyClient
-from ara.config import TAVILY_API_KEY, TAVILY_MAX_RESULTS
+from backend.ara.config import TAVILY_API_KEY, TAVILY_MAX_RESULTS
 
 client = TavilyClient(api_key=TAVILY_API_KEY)
 

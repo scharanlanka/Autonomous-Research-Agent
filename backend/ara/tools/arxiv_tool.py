@@ -1,6 +1,6 @@
 import arxiv
 import time
-from ara.config import ARXIV_MAX_RESULTS
+from backend.ara.config import ARXIV_MAX_RESULTS
 
 def arxiv_search(query: str, max_results: int | None = None) -> list[dict]:
     max_results = max_results or ARXIV_MAX_RESULTS

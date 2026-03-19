@@ -1,5 +1,5 @@
 import requests
-from ara.config import AZURE_LLM_ENDPOINT, AZURE_LLM_API_KEY, AZURE_LLM_DEPLOYMENT_NAME
+from backend.ara.config import AZURE_LLM_ENDPOINT, AZURE_LLM_API_KEY, AZURE_LLM_DEPLOYMENT_NAME
 
 class AzureChatLLM:
     last_call_meta = {}

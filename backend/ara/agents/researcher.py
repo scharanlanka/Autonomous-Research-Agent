@@ -1,7 +1,7 @@
 import time
-from ara.tavily_search import tavily_search
-from ara.tools.arxiv_tool import arxiv_search
-from ara.tools.web_fetch import fetch_clean_text
+from backend.ara.tavily_search import tavily_search
+from backend.ara.tools.arxiv_tool import arxiv_search
+from backend.ara.tools.web_fetch import fetch_clean_text
 
 def run_research(query: str) -> tuple[list[dict], list[dict]]:
     """

@@ -1,4 +1,4 @@
-from ara.azure_llm import AzureChatLLM
+from backend.ara.azure_llm import AzureChatLLM
 
 SYSTEM = """You are CriticAgent.
 Review the draft report for:

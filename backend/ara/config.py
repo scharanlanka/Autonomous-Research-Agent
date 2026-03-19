@@ -1,8 +1,8 @@
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Always load .env from project root (../.env relative to this file)
-load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+# Always load .env from repo root (../../.env relative to this file)
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 import os
 
 def env(name: str, default: str | None = None) -> str:

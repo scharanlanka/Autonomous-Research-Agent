@@ -1,5 +1,5 @@
 import requests
-from ara.config import AZURE_EMBEDDING_ENDPOINT, AZURE_EMBEDDING_API_KEY, AZURE_EMBEDDING_DEPLOYMENT_NAME
+from backend.ara.config import AZURE_EMBEDDING_ENDPOINT, AZURE_EMBEDDING_API_KEY, AZURE_EMBEDDING_DEPLOYMENT_NAME
 
 class AzureEmbeddings:
     def __init__(self, endpoint: str = AZURE_EMBEDDING_ENDPOINT, api_key: str = AZURE_EMBEDDING_API_KEY):

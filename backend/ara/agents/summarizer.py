@@ -1,4 +1,4 @@
-from ara.azure_llm import AzureChatLLM
+from backend.ara.azure_llm import AzureChatLLM
 
 SYSTEM = """You are SummarizerAgent.
 Given the user query, memory context (prior notes), and gathered sources (snippets + extracted text),

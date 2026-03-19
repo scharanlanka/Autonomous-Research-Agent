@@ -1,16 +1,16 @@
 from typing import TypedDict, List, Dict, Any
 from langgraph.graph import StateGraph, END
 
-from ara.logger import InMemoryLogger
-from ara.memory import MemoryStore, make_id
-from ara.schemas import ToolResult, SourceItem
-from ara.azure_llm import AzureChatLLM
+from backend.ara.logger import InMemoryLogger
+from backend.ara.memory import MemoryStore, make_id
+from backend.ara.schemas import ToolResult, SourceItem
+from backend.ara.azure_llm import AzureChatLLM
 
-from ara.agents.planner import run_planner
-from ara.agents.researcher import run_research
-from ara.agents.summarizer import run_summarizer
-from ara.agents.critic import run_critic
-from ara.agents.reporter import extract_revised, normalize_markdown_report, is_placeholder_report
+from backend.ara.agents.planner import run_planner
+from backend.ara.agents.researcher import run_research
+from backend.ara.agents.summarizer import run_summarizer
+from backend.ara.agents.critic import run_critic
+from backend.ara.agents.reporter import extract_revised, normalize_markdown_report, is_placeholder_report
 
 class GraphState(TypedDict, total=False):
     query: str

@@ -13,8 +13,8 @@ os.environ.setdefault("ANONYMIZED_TELEMETRY", "FALSE")
 import chromadb
 from chromadb.config import Settings
 
-from ara.config import CHROMA_PERSIST_DIR, CHROMA_COLLECTION
-from ara.azure_embeddings import AzureEmbeddings
+from backend.ara.config import CHROMA_PERSIST_DIR, CHROMA_COLLECTION
+from backend.ara.azure_embeddings import AzureEmbeddings
 
 # Suppress telemetry logger noise if Chroma still tries to initialize telemetry.
 for _logger_name in (
@@ -48,7 +48,7 @@ def _create_persistent_client():
         if "already exists" not in msg or "different settings" not in msg:
             raise
 
-        # Streamlit reruns can reuse the in-process Chroma shared system cache.
+        # Repeated in-process runs can reuse the shared system cache.
         # Clear it and recreate with the current settings.
         try:
             from chromadb.api.client import SharedSystemClient  # type: ignore
