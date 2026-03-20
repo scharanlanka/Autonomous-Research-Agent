@@ -54,14 +54,23 @@ type StreamSourceEvent = {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8001";
 const SAMPLE_QUERY =
   "Research the impact of AI on software engineering jobs from 2023 to 2026. Include key findings, risks, and recommendations with sources.";
+const WORKFLOW_STEPS = [
+  { node: "planner_node", label: "Planning" },
+  { node: "memory_retrieve_node", label: "Retrieving Memory" },
+  { node: "research_node", label: "Researching Sources" },
+  { node: "summarize_node", label: "Generating Draft" },
+  { node: "critic_node", label: "Revising Report" },
+  { node: "memory_store_node", label: "Storing Memory" }
+];
 
 export default function Home() {
+  type Stage = "idle" | "in_progress" | "completed";
   const [query, setQuery] = useState(SAMPLE_QUERY);
   const [result, setResult] = useState<ResearchResponse | null>(null);
   const [error, setError] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  const [stage, setStage] = useState<Stage>("idle");
   const [progress, setProgress] = useState<ProgressEvent[]>([]);
-  const [currentPhase, setCurrentPhase] = useState("Idle");
   const [livePlan, setLivePlan] = useState<string[]>([]);
   const [liveSources, setLiveSources] = useState<SourceItem[]>([]);
   const [liveLogs, setLiveLogs] = useState<string[]>([]);
@@ -70,6 +79,26 @@ export default function Home() {
   const planItems = livePlan.length ? livePlan : result?.plan ?? [];
   const sourceItems = liveSources.length ? liveSources : result?.sources ?? [];
   const logItems = liveLogs.length ? liveLogs : result?.logs ?? [];
+  const stageLabel = stage === "in_progress" ? "In Progress" : stage === "completed" ? "Completed" : "Idle";
+  const stageClass =
+    stage === "in_progress"
+      ? "stage-pill--in-progress"
+      : stage === "completed"
+        ? "stage-pill--completed"
+        : "stage-pill--idle";
+  const progressByNode = useMemo(() => {
+    return new Map(progress.map((item) => [item.node, item]));
+  }, [progress]);
+  const activeNode = useMemo(() => {
+    if (!isRunning) return null;
+    const completedNodes = WORKFLOW_STEPS.filter((step) => progressByNode.has(step.node));
+    if (!completedNodes.length) return WORKFLOW_STEPS[0]?.node ?? null;
+
+    const lastCompletedNode = completedNodes[completedNodes.length - 1];
+    const completedIdx = WORKFLOW_STEPS.findIndex((step) => step.node === lastCompletedNode.node);
+    const nextStep = WORKFLOW_STEPS[completedIdx + 1];
+    return nextStep?.node ?? lastCompletedNode.node;
+  }, [isRunning, progressByNode]);
 
   const runResearch = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -82,9 +111,9 @@ export default function Home() {
 
     setError("");
     setIsRunning(true);
+    setStage("in_progress");
     setResult(null);
     setProgress([]);
-    setCurrentPhase("Starting");
     setLivePlan([]);
     setLiveSources([]);
     setLiveLogs([]);
@@ -123,7 +152,6 @@ export default function Home() {
         }
 
         if (eventName === "status") {
-          setCurrentPhase("Starting");
           return;
         }
 
@@ -139,7 +167,6 @@ export default function Home() {
             timestamp: Date.now()
           };
 
-          setCurrentPhase(next.label);
           setProgress((prev) => {
             const idx = prev.findIndex((p) => p.node === next.node);
             if (idx === -1) return [...prev, next];
@@ -209,7 +236,7 @@ export default function Home() {
 
         if (eventName === "done") {
           gotDone = true;
-          setCurrentPhase("Completed");
+          setStage("completed");
         }
       };
 
@@ -248,7 +275,7 @@ export default function Home() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error occurred.";
       setError(message);
-      setCurrentPhase("Failed");
+      setStage("idle");
     } finally {
       setIsRunning(false);
     }
@@ -319,8 +346,9 @@ export default function Home() {
         <div className="status-row">
           <span className="pill">Frontend: 3001</span>
           <span className="pill">Backend: {API_BASE_URL}</span>
-          <span className="pill">
-            Status: {isRunning ? `Running - ${currentPhase}` : currentPhase}
+          <span className={`stage-pill ${stageClass} is-active`} aria-label="Run status">
+            <span className="stage-dot" aria-hidden />
+            {stageLabel}
           </span>
         </div>
 
@@ -365,20 +393,32 @@ export default function Home() {
           <section className="result-grid">
             <article className="panel panel-wide">
               <h2>Live Progress</h2>
-              {progress.length ? (
-                <ul className="timeline">
-                  {progress.map((item) => (
-                    <li key={item.node}>
-                      <span className="timeline-label">{item.label}</span>
+              <ul className="timeline">
+                {WORKFLOW_STEPS.map((step) => {
+                  const item = progressByNode.get(step.node);
+                  const isCompleted = Boolean(item);
+                  const isActive = !isCompleted && isRunning && activeNode === step.node;
+                  const checkState = isCompleted
+                    ? "timeline-check--completed"
+                    : isActive
+                      ? "timeline-check--active"
+                      : "timeline-check--pending";
+
+                  return (
+                    <li key={step.node}>
+                      <div className="timeline-left">
+                        <span className={`timeline-check ${checkState}`} aria-hidden>
+                          {isCompleted || isActive ? "✓" : ""}
+                        </span>
+                        <span className="timeline-label">{step.label}</span>
+                      </div>
                       <span className="timeline-meta">
-                        plan {item.plan_count} | sources {item.source_count}
+                        plan {item?.plan_count ?? 0} | sources {item?.source_count ?? 0}
                       </span>
                     </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="muted">Waiting for stream events...</p>
-              )}
+                  );
+                })}
+              </ul>
             </article>
 
             <article className="panel">
