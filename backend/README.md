@@ -66,6 +66,14 @@ python -m backend.main
 
 - `http://localhost:8001/docs`
 
+## Docker
+
+From project root:
+
+```bash
+docker compose up --build backend
+```
+
 ## API Endpoints
 
 - `GET /health`

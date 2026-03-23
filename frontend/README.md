@@ -51,6 +51,14 @@ npm run dev
 
 - `http://localhost:3001`
 
+## Docker
+
+From project root:
+
+```bash
+docker compose up --build frontend
+```
+
 ## Available Scripts
 
 - `npm run dev` -> start dev server on port `3001`

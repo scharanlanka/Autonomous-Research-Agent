@@ -97,6 +97,26 @@ npm run dev
 - Frontend: `http://localhost:3001`
 - API docs: `http://localhost:8001/docs`
 
+## Docker Setup
+
+Run both services with Docker Compose from the project root:
+
+```bash
+docker compose up --build
+```
+
+Access:
+
+- Frontend: `http://localhost:3001`
+- Backend: `http://localhost:8001`
+- Backend docs: `http://localhost:8001/docs`
+
+Stop containers:
+
+```bash
+docker compose down
+```
+
 ## Core API Endpoints
 
 - `GET /health`
